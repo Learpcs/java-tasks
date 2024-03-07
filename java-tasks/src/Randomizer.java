@@ -94,16 +94,20 @@ class Randomizer {
             }
         }
 
+        if (cls == String.class) {
+            return (T) new String(getRandomObject(char[].class));
+        }
+
 
 
         Constructor[] ctrList = cls.getDeclaredConstructors();
         Collections.shuffle(Arrays.asList(ctrList));
 
-        Constructor ctr = ctrList[0];
+        Constructor ctr = null;
 
         for (Constructor c : ctrList) {
             System.out.println(c.getModifiers());
-            if (Modifier.isPublic(c.getModifiers()) || Modifier.isProtected(c.getModifiers())) {
+            if (Modifier.isPublic(c.getModifiers())) {
                 ctr = c;
                 break;
             }
