@@ -1,18 +1,23 @@
 import java.lang.reflect.*;
 import java.util.*;
 
+//TODO refactor
 class Randomizer {
     private static Random rnd = new Random();
+    private static int DEPTH_UPPER_BOUND = 6;
+    private static <T> T getRandomObjectRec(Class<T> cls, int depth) throws Exception {
+//        System.out.printf("!%s %s\n", cls.getTypeName(), depth);
 
-    public static <T> T getRandomObject(Class<T> cls) throws Exception {
-        System.out.printf("!%s\n", cls.getTypeName());
-        //System.out.printf("Зашел в рекурсию (название класса, притивный тип, массив тип): %s %s %s\n", cls.getName(), cls.isPrimitive(), cls.isArray());
+        if (depth == DEPTH_UPPER_BOUND) {
+            return null;
+        }
+
 
         //TODO switch statements?
-
+        //TODO RandomizerSettings.specified(cls) => handle base case
         if (cls.isPrimitive()) {
             if (cls == int.class) {
-                return (T) (Object) (int) rnd.nextInt(100);
+                return (T) (Object) (int) rnd.nextInt();
             }
             if (cls == byte.class) {
                 return (T) (Object) (byte) rnd.nextInt(256);
@@ -34,97 +39,106 @@ class Randomizer {
             }
         }
 
-        //Попытка 1
         if (cls.isArray()) {
+//            Object[] a = (Object[]) Array.newInstance(cls.getComponentType(), 10);
+//
+//            for (int i = 0; i < a.length; ++i) {
+//                a[i] = getRandomObjectRec(cls.getComponentType(), depth + 1);
+//            }
+//            System.out.printf("!!!%s\n", cls.getComponentType());
+//            return (T) a;
             if (cls.getComponentType() == int.class) {
                 int[] arr = new int[rnd.nextInt(10) + 1];
                 for (int i = 0; i < arr.length; ++i) {
-                    arr[i] = (int)(Object)getRandomObject(cls.getComponentType());
+                    arr[i] = (int)(Object)getRandomObjectRec(cls.getComponentType(), depth + 1);
                 }
                 return (T) arr;
             }
             else if (cls.getComponentType()  == byte.class) {
                 byte[] arr = new byte[rnd.nextInt(10) + 1];
                 for (int i = 0; i < arr.length; ++i) {
-                    arr[i] = (byte)(Object)getRandomObject(cls.getComponentType());
+                    arr[i] = (byte)(Object)getRandomObjectRec(cls.getComponentType(), depth + 1);
                 }
                 return (T) arr;
             }
             else if (cls.getComponentType()  == short.class) {
                 short[] arr = new short[rnd.nextInt(10) + 1];
                 for (int i = 0; i < arr.length; ++i) {
-                    arr[i] = (short)(Object)getRandomObject(cls.getComponentType());
+                    arr[i] = (short)(Object)getRandomObjectRec(cls.getComponentType(), depth + 1);
                 }
                 return (T) arr;
             }
             else if (cls.getComponentType()  == long.class) {
                 long[] arr = new long[rnd.nextInt(10) + 1];
                 for (int i = 0; i < arr.length; ++i) {
-                    arr[i] = (long)(Object)getRandomObject(cls.getComponentType());
+                    arr[i] = (long)(Object)getRandomObjectRec(cls.getComponentType(), depth + 1);
                 }
                 return (T) arr;
             }
             else if (cls.getComponentType()  == char.class) {
                 char[] arr = new char[rnd.nextInt(10) + 1];
                 for (int i = 0; i < arr.length; ++i) {
-                    arr[i] = (char)(Object)getRandomObject(cls.getComponentType());
+                    arr[i] = (char)(Object)getRandomObjectRec(cls.getComponentType(), depth + 1);
                 }
                 return (T) arr;
             }
             else if (cls.getComponentType()  == float.class) {
                 float[] arr = new float[rnd.nextInt(10) + 1];
                 for (int i = 0; i < arr.length; ++i) {
-                    arr[i] = (float)(Object)getRandomObject(cls.getComponentType());
+                    arr[i] = (float)(Object)getRandomObjectRec(cls.getComponentType(), depth + 1);
                 }
                 return (T) arr;
             }
             else if (cls.getComponentType()  == double.class) {
                 double[] arr = new double[rnd.nextInt(10) + 1];
                 for (int i = 0; i < arr.length; ++i) {
-                    arr[i] = (double)(Object)getRandomObject(cls.getComponentType());
+                    arr[i] = (double)(Object)getRandomObjectRec(cls.getComponentType(), depth + 1);
                 }
                 return (T) arr;
             }
             else {
-                Object[] arr = new Object[rnd.nextInt(10) + 1];
+                Object[] arr = (Object[]) Array.newInstance(cls.getComponentType(), rnd.nextInt(10) + 1);
+
                 for (int i = 0; i < arr.length; ++i) {
-                    arr[i] = getRandomObject(cls.getComponentType());
+                    arr[i] = getRandomObjectRec(cls.getComponentType(), depth + 1);
                 }
                 return (T) arr;
             }
         }
 
         if (cls == String.class) {
-            return (T) new String(getRandomObject(char[].class));
+            return (T) new String(getRandomObjectRec(char[].class, depth + 1));
         }
-
-
 
         Constructor[] ctrList = cls.getDeclaredConstructors();
         Collections.shuffle(Arrays.asList(ctrList));
 
-        Constructor ctr = null;
+        for (Constructor ctr : ctrList) {
+            if (Modifier.isPublic(ctr.getModifiers()) ) {
+                Object[] invokeParms = new Object[ctr.getParameterCount()];
+                Class[] ctrParams = ctr.getParameterTypes();
+                Boolean valid = true;
+                for (int i = 0; i < invokeParms.length; i++) {
+                    invokeParms[i] = getRandomObjectRec(ctrParams[i], depth + 1);
+                    //TODO RandomizerSettings.Valid()
+                    valid &= invokeParms[i] != null;
+                }
 
-        for (Constructor c : ctrList) {
-            System.out.println(c.getModifiers());
-            if (Modifier.isPublic(c.getModifiers())) {
-                ctr = c;
-                break;
+                if (valid) {
+                    try {
+                        return (T)ctr.newInstance(invokeParms);
+                    }
+                    catch (Exception e) {
+                        continue;
+                    }
+                }
             }
         }
 
-        if (ctr == null) {
-            throw new Exception("All constructors are private");
-        }
+        return null;
+    }
 
-        Object[] invokeParms = new Object[ctr.getParameterCount()];
-        Class[] ctrParams = ctr.getParameterTypes();
-        for (int i = 0; i < invokeParms.length; i++) {
-            invokeParms[i] = getRandomObject(ctrParams[i]);
-        }
-        T obj = (T)ctr.newInstance(invokeParms);
-
-        System.out.println("ВЫШЕЛ ИЗ РЕКУРСИИ");
-        return obj;
+    public static <T> T getRandomObject(Class<T> cls) throws Exception {
+        return getRandomObjectRec(cls, 0);
     }
 }
