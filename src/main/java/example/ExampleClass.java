@@ -1,3 +1,5 @@
+package example;
+
 public class ExampleClass {
     private int a;
     private char b;
