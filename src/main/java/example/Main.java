@@ -1,3 +1,5 @@
+package example;
+
 import java.lang.reflect.InvocationTargetException;
 
 //TODO maven
@@ -7,8 +9,7 @@ public class Main {
         try {
             ExampleClass example = Randomizer.getRandomObject(ExampleClass.class);
             System.out.printf("Constructed object: %s", example);
-//            Integer[] example = Randomizer.getRandomObject(Integer[].class);
-//            System.out.printf("Example: %s", example[0]);
+
         }
         catch (InvocationTargetException ex) {
             System.out.printf("oops! %s", ex.getCause());
