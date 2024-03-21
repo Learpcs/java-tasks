@@ -11,6 +11,7 @@ import java.util.*;
 class Randomizer {
     private static final Random rnd = new Random();
     private static final int DEPTH_UPPER_BOUND = 8; //less than 6 seems not usable for wrapper classes
+
     private static <T> T getRandomObjectRec(Class<T> cls, int depth) {
 //        System.out.printf("!%s %s\n", cls.getTypeName(), depth);
 
