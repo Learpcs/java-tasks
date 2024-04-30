@@ -7,10 +7,8 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="java-tasks" />
+        <module name="randomizer" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="randomizer" target="1.7" />
-    </bytecodeTargetLevel>
   </component>
 </project>

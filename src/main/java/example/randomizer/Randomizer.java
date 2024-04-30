@@ -1,27 +1,23 @@
-package example;
+package example.randomizer;
+
+import lombok.AllArgsConstructor;
 
 import java.lang.reflect.*;
 import java.util.*;
 
-//can't suppress Casting '...' to '...' is redundant, sooooo no more warnings
-//@SuppressWarnings({"unchecked", "cast", "boxing"})
-@SuppressWarnings("all")
+@AllArgsConstructor
+public class Randomizer {
+    Random rnd;
+    int DEPTH_UPPER_BOUND; //less than 6 seems not usable for wrapper classes
+    boolean debug_mode;
 
-//TODO refactor
-class Randomizer {
-    private static final Random rnd = new Random();
-    private static final int DEPTH_UPPER_BOUND = 8; //less than 6 seems not usable for wrapper classes
-
-    private static <T> T getRandomObjectRec(Class<T> cls, int depth) {
-//        System.out.printf("!%s %s\n", cls.getTypeName(), depth);
+    private <T> T getRandomObjectRec(Class<T> cls, int depth) {
+        if (debug_mode) System.out.printf("!%s %s\n", cls.getTypeName(), depth);
 
         if (depth == DEPTH_UPPER_BOUND) {
             return null;
         }
 
-
-        //TODO switch statements?
-        //TODO RandomizerSettings.specified(cls) => handle base case
         if (cls.isPrimitive()) {
             if (cls == int.class) {
                 return (T) (Object) (int) rnd.nextInt();
@@ -47,21 +43,13 @@ class Randomizer {
         }
 
         if (cls.isArray()) {
-//            Object[] a = (Object[]) Array.newInstance(cls.getComponentType(), 10);
-//
-//            for (int i = 0; i < a.length; ++i) {
-//                a[i] = getRandomObjectRec(cls.getComponentType(), depth + 1);
-//            }
-//            System.out.printf("!!!%s\n", cls.getComponentType());
-//            return (T) a;
             if (cls.getComponentType() == int.class) {
                 int[] arr = new int[rnd.nextInt(10) + 1];
                 for (int i = 0; i < arr.length; ++i) {
                     Object obj = (Object)getRandomObjectRec(cls.getComponentType(), depth + 1);
 
-                    //TODO RandomSettings.valid(int, obj);
                     if (obj == null) {
-                        return null;
+                        throw new RuntimeException(String.format("Primitive type became null %s", cls.getComponentType()));
                     }
                     arr[i] = (int) obj;
                 }
@@ -72,9 +60,8 @@ class Randomizer {
                 for (int i = 0; i < arr.length; ++i) {
                     Object obj = (Object)getRandomObjectRec(cls.getComponentType(), depth + 1);
 
-                    //TODO RandomSettings.valid(int, obj);
                     if (obj == null) {
-                        return null;
+                        throw new RuntimeException(String.format("Primitive type became null %s", cls.getComponentType()));
                     }
                     arr[i] = (byte) obj;
                 }
@@ -85,9 +72,8 @@ class Randomizer {
                 for (int i = 0; i < arr.length; ++i) {
                     Object obj = (Object)getRandomObjectRec(cls.getComponentType(), depth + 1);
 
-                    //TODO RandomSettings.valid(int, obj);
                     if (obj == null) {
-                        return null;
+                        throw new RuntimeException(String.format("Primitive type became null %s", cls.getComponentType()));
                     }
                     arr[i] = (short) obj;
                 }
@@ -98,9 +84,8 @@ class Randomizer {
                 for (int i = 0; i < arr.length; ++i) {
                     Object obj = (Object)getRandomObjectRec(cls.getComponentType(), depth + 1);
 
-                    //TODO RandomSettings.valid(int, obj);
                     if (obj == null) {
-                        return null;
+                        throw new RuntimeException(String.format("Primitive type became null %s", cls.getComponentType()));
                     }
                     arr[i] = (long) obj;
                 }
@@ -197,7 +182,7 @@ class Randomizer {
         return null;
     }
 
-    public static <T> T getRandomObject(Class<T> cls) {
+    public <T> T getRandomObject(Class<T> cls) {
         return getRandomObjectRec(cls, 0);
     }
 }
